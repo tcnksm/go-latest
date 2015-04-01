@@ -19,11 +19,6 @@ type JSON struct {
 	// so that it can be persed as semantic versioning
 	// by hashicorp/go-version
 	FixVersionStrFunc FixVersionStrFunc
-
-	// Filed is json field which current version infomation
-	// Default it is 'version'
-	// e.g., if json is {'versionInfo':"1.2.3"}, Field is 'versionInfo'
-	Field string
 }
 
 type Response struct {
