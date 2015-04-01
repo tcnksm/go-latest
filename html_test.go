@@ -7,12 +7,12 @@ import (
 	"testing"
 )
 
-func TestHTMLMeta_implement(t *testing.T) {
-	var _ Source = &HTMLMeta{}
+func TestHTML_implement(t *testing.T) {
+	var _ Source = &HTML{}
 }
 
-func TestHTMLMeta_Validate(t *testing.T) {
-	h := &HTMLMeta{
+func TestHTML_Validate(t *testing.T) {
+	h := &HTML{
 		URL: "http://example.com/info",
 	}
 
@@ -22,14 +22,14 @@ func TestHTMLMeta_Validate(t *testing.T) {
 	}
 }
 
-func TestHTMLMeta_Fetch(t *testing.T) {
+func TestHTML_Fetch(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		testHTML := `<html><meta></html>`
 		fmt.Fprintf(w, testHTML)
 	}))
 	defer ts.Close()
 
-	h := HTMLMeta{
+	h := HTML{
 		URL: ts.URL,
 	}
 

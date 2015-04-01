@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-type HTMLMeta struct {
+type HTML struct {
 	// URL is request URL to fetch version information
 	URL string
 
@@ -17,7 +17,7 @@ type HTMLMeta struct {
 	FixVersionStrFunc FixVersionStrFunc
 }
 
-func (h *HTMLMeta) fixVersionStrFunc() FixVersionStrFunc {
+func (h *HTML) fixVersionStrFunc() FixVersionStrFunc {
 	if h.FixVersionStrFunc == nil {
 		return defaultFixVersionStrFunc
 	}
@@ -25,7 +25,7 @@ func (h *HTMLMeta) fixVersionStrFunc() FixVersionStrFunc {
 	return h.FixVersionStrFunc
 }
 
-func (h *HTMLMeta) Validate() error {
+func (h *HTML) Validate() error {
 
 	if len(h.URL) == 0 {
 		return fmt.Errorf("URL must be set")
@@ -39,7 +39,7 @@ func (h *HTMLMeta) Validate() error {
 	return nil
 }
 
-func (h *HTMLMeta) Fetch() ([]*version.Version, []string, error) {
+func (h *HTML) Fetch() ([]*version.Version, []string, error) {
 
 	var versions []*version.Version
 	var malformed []string
