@@ -19,36 +19,34 @@ import (
 )
 
 // FixVersionStrFunc is function to fix version string
-// so that it can be parsed as Semantic version by hashicorp/go-version
+// so that it can be interpreted as SemVer by hashicorp/go-version
 type FixVersionStrFunc func(string) string
 
 var defaultFixVersionStrFunc FixVersionStrFunc
 
 func init() {
-	// Doing nothing by default
-	defaultFixVersionStrFunc = func(s string) string { return s }
+	defaultFixVersionStrFunc = FixNothing()
 }
 
+// Source is version information source like GitHub or your server HTML.
 type Source interface {
-	// Validate validates Source option values
-	// e.g., mandatory variables are set or not
+	// Validate validates Source struct e.g., mandatory variables are set
 	Validate() error
 
 	// Fetch fetches version information from its source
-	// and convert it to []*version.Version
+	// and convert it into version.Version
 	Fetch() ([]*version.Version, []string, error)
 }
 
-// CheckResponse stores check result
+// CheckResponse stores check results
 type CheckResponse struct {
-	// Current is current version or tag on source
+	// Current is current latest version on source
 	Current string
 
-	// Latest is true when target is greater than current on
-	// source.
+	// Latest is true when target is greater than Current on source.
 	Latest bool
 
-	// New is true when target is greater than current on
+	// New is true when target is greater than Current on
 	// source and new (not exist).
 	New bool
 
@@ -58,7 +56,7 @@ type CheckResponse struct {
 }
 
 // CheckLatest fetches last version information from its source
-// And comapre with target and return results
+// and compares with target and return result (CheckResponse)
 func Check(target string, s Source) (*CheckResponse, error) {
 	// Convert target to *version.Version
 	targetV, err := version.NewVersion(target)
@@ -66,7 +64,7 @@ func Check(target string, s Source) (*CheckResponse, error) {
 		return nil, fmt.Errorf("failed to parse %s : %s", err.Error())
 	}
 
-	// Validate options
+	// Validate source
 	if err = s.Validate(); err != nil {
 		return nil, err
 	}
@@ -76,6 +74,7 @@ func Check(target string, s Source) (*CheckResponse, error) {
 		return nil, err
 	}
 
+	// Source must has at leaset one version information
 	if len(versions) == 0 {
 		return nil, fmt.Errorf("no version to compare")
 	}
@@ -101,8 +100,13 @@ func Check(target string, s Source) (*CheckResponse, error) {
 	}, nil
 }
 
+func FixNothing() FixVersionStrFunc {
+	return func(s string) string {
+		return s
+	}
+}
+
 // DeleteFrontV delete first `v` charactor on version string
-//
 // e.g., `v0.1.1` becomes `0.1.1`
 func DeleteFrontV() FixVersionStrFunc {
 	return func(s string) string {
