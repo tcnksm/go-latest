@@ -1,48 +1,104 @@
 package latest
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 )
+
+func fakeServer(fixture string) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, err := os.Open(fixture)
+		if err != nil {
+			// Should not reach here
+			panic(err)
+		}
+		io.Copy(w, f)
+	}))
+}
 
 func TestJSON_implement(t *testing.T) {
 	var _ Source = &JSON{}
 }
 
-func TestJSON_Validate(t *testing.T) {
-	j := &JSON{
-		URL: "http://example.com/info",
+func TestJSONValidate(t *testing.T) {
+
+	tests := []struct {
+		JSON      *JSON
+		expectErr bool
+	}{
+		{
+			JSON: &JSON{
+				URL: "http://good.com",
+			},
+			expectErr: false,
+		},
+		{
+			JSON: &JSON{
+				URL: "",
+			},
+			expectErr: true,
+		},
 	}
 
-	err := j.Validate()
-	if err != nil {
-		t.Fatalf("expect %s to eq nil", err.Error())
+	for i, tt := range tests {
+		j := tt.JSON
+		err := j.Validate()
+		if tt.expectErr == (err == nil) {
+			t.Fatalf("#%d Validate() expects err == nil to eq %t", i, tt.expectErr)
+		}
 	}
 }
 
-func TestJSON_Fetch(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{"version":"1.2.4"}`)
-	}))
-	defer ts.Close()
+// OriginalResponse implements Receiver and receives test-fixtures/original.json
+type OriginalResponse struct {
+	Name        string `json:"name"`
+	VersionInfo string `json:"version_info"`
+}
 
-	j := JSON{
-		URL: ts.URL,
+func (r *OriginalResponse) Version() string {
+	verStr := strings.Replace(r.VersionInfo, "v", "", 1)
+	return verStr
+}
+
+func TestJSONFetch(t *testing.T) {
+
+	tests := []struct {
+		testServer    *httptest.Server
+		receiver      Receiver
+		expectCurrent string
+	}{
+		{
+			testServer:    fakeServer("test-fixtures/default.json"),
+			expectCurrent: "1.2.3",
+		},
+		{
+			testServer:    fakeServer("test-fixtures/original.json"),
+			expectCurrent: "0.1.0",
+			receiver:      &OriginalResponse{},
+		},
 	}
 
-	versions, malformed, err := j.Fetch()
-	if err != nil {
-		t.Fatalf("expect %s to eq nil", err.Error())
-	}
+	for i, tt := range tests {
+		ts := tt.testServer
+		defer ts.Close()
 
-	if len(malformed) != 0 {
-		t.Fatalf("expect %d to eq 0", len(malformed))
-	}
+		j := &JSON{
+			URL:      ts.URL,
+			Receiver: tt.receiver,
+		}
 
-	expect := "1.2.4"
-	if versions[0].String() != expect {
-		t.Fatalf("expect %s to eq %s", versions[0].String(), expect)
+		versions, _, err := j.Fetch()
+		if err != nil {
+			t.Fatalf("#%d Fetch() expects error:%q to be nil", i, err.Error())
+		}
+
+		current := versions[0].String()
+		if current != tt.expectCurrent {
+			t.Fatalf("#%d Fetch() expects %s to be %s", i, current, tt.expectCurrent)
+		}
 	}
 }
