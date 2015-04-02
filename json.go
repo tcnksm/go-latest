@@ -3,10 +3,16 @@ package latest
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/hashicorp/go-version"
+)
+
+var (
+	defaultDialTimeout = 5 * time.Second
 )
 
 // JSON is implemented Source interface. It fetches version infomation
@@ -75,9 +81,21 @@ func (j *JSON) Fetch() ([]*version.Version, []string, error) {
 	if err != nil {
 		return versions, malformed, err
 	}
-
 	req.Header.Add("Accept", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+
+	// Create client
+	t := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: func(n, a string) (net.Conn, error) {
+			return net.DialTimeout(n, a, defaultDialTimeout)
+		},
+	}
+
+	client := &http.Client{
+		Transport: t,
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return versions, malformed, err
 	}
