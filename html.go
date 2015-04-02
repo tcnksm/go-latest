@@ -18,13 +18,13 @@ type HTML struct {
 	ScrapFunc ScrapFunc
 }
 
-type ScrapFunc func(r io.Reader) string
+type ScrapFunc func(r io.Reader) []string
 
 func ScrapNothing() ScrapFunc {
-	return func(r io.Reader) string {
+	return func(r io.Reader) []string {
 		b, _ := ioutil.ReadAll(r)
 		b = bytes.Replace(b, []byte("\n"), []byte(""), -1)
-		return string(b[:])
+		return []string{string(b[:])}
 	}
 }
 
@@ -93,17 +93,18 @@ func (h *HTML) Fetch() ([]*version.Version, []string, error) {
 	}
 
 	scrapFunc := h.scrapFunc()
-	verStr := scrapFunc(resp.Body)
-	if len(verStr) == 0 {
+	verStrs := scrapFunc(resp.Body)
+	if len(verStrs) == 0 {
 		return versions, malformed, fmt.Errorf("version info is not found on %s", h.URL)
 	}
 
-	v, err := version.NewVersion(verStr)
-	if err != nil {
-		malformed = append(malformed, verStr)
-		return versions, malformed, err
+	for _, verStr := range verStrs {
+		v, err := version.NewVersion(verStr)
+		if err != nil {
+			malformed = append(malformed, verStr)
+			continue
+		}
+		versions = append(versions, v)
 	}
-
-	versions = append(versions, v)
 	return versions, malformed, nil
 }

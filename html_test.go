@@ -3,8 +3,10 @@ package latest
 import (
 	"io"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -15,7 +17,7 @@ func TestHTML_implement(t *testing.T) {
 
 // originalScrap is scrapFunc for test-fixtures/original.html
 // It extracts VERSION from `<div class="version">VERSION</div>`
-func originalScrap(r io.Reader) string {
+func originalScrap(r io.Reader) []string {
 
 	// Check function attrs has correct class="version" key&value
 	isTarget := func(targetVal string, attrs []html.Attribute) bool {
@@ -31,18 +33,19 @@ func originalScrap(r io.Reader) string {
 		return false
 	}
 
+	var verStrs []string
 	z := html.NewTokenizer(r)
 
 	for {
 		switch z.Next() {
 		case html.ErrorToken:
-			return ""
+			return verStrs
 		case html.StartTagToken:
 			tok := z.Token()
 			if tok.DataAtom == atom.Div && isTarget("version", tok.Attr) {
 				z.Next()
 				newTok := z.Token()
-				return newTok.String()
+				verStrs = append(verStrs, newTok.String())
 			}
 		}
 	}
@@ -60,7 +63,7 @@ func TestHTMLFetch(t *testing.T) {
 		},
 		{
 			testServer:    fakeServer("test-fixtures/original.html"),
-			expectCurrent: "0.1.2",
+			expectCurrent: "1.2.5",
 			scrapFunc:     originalScrap,
 		},
 	}
@@ -83,7 +86,8 @@ func TestHTMLFetch(t *testing.T) {
 			t.Fatalf("#%d Fetch() expects number of versions found from HTML not to be 0", i)
 		}
 
-		current := versions[0].String()
+		sort.Sort(version.Collection(versions))
+		current := versions[len(versions)-1].String()
 		if current != tt.expectCurrent {
 			t.Fatalf("#%d Fetch() expects %s to be %s", i, current, tt.expectCurrent)
 		}
