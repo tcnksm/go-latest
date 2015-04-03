@@ -3,11 +3,12 @@
 `go-latest.HTMLMeta` uses HTML meta tag to check latest version of your tool. It will request provided `URL` and inspec the HTML returned for meta tags that have the following format:
 
 ```bash
-<meta name="go-latest" content="product-name SemVer">
+<meta name="go-latest" content="product-name SemVer message">
 ```
 
-- `product-name` must be your tool name
-- `SemVer` must be your tool version by [Semantic Versioning](http://semver.org/)
+- `product-name` is your tool name. It MUST be filled
+- `SemVer` is your tool version by [Semantic Versioning](http://semver.org/). It MUST be filled
+- `message` is a message. It MAY be filled
 
 For example, if you want to check latest version of `reduce-worker`, you just prepare a HTML page which contains following tags.
 
