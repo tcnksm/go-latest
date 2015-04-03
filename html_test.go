@@ -20,7 +20,7 @@ func TestHTMLFetch(t *testing.T) {
 		testServer    *httptest.Server
 		expectCurrent string
 		expectMessage string
-		scrapFunc     ScrapFunc
+		scraper       Scraper
 	}{
 		{
 			testServer:    fakeServer("test-fixtures/default.html"),
@@ -30,7 +30,7 @@ func TestHTMLFetch(t *testing.T) {
 			testServer:    fakeServer("test-fixtures/original.html"),
 			expectCurrent: "1.2.5",
 			expectMessage: "New version include security update, you should update soon",
-			scrapFunc:     originalScrap,
+			scraper:       &DivAttributeScrap{},
 		},
 	}
 
@@ -39,8 +39,8 @@ func TestHTMLFetch(t *testing.T) {
 		defer ts.Close()
 
 		h := &HTML{
-			URL:       ts.URL,
-			ScrapFunc: tt.scrapFunc,
+			URL:     ts.URL,
+			Scraper: tt.scraper,
 		}
 
 		fr, err := h.Fetch()
@@ -67,9 +67,10 @@ func TestHTMLFetch(t *testing.T) {
 
 }
 
-// originalScrap is scrapFunc for test-fixtures/original.html
-// It extracts VERSION from `<div class="version">VERSION</div>`
-func originalScrap(r io.Reader) ([]string, *Meta, error) {
+type DivAttributeScrap struct {
+}
+
+func (s *DivAttributeScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 
 	// Check function attrs has correct class="val" key&value
 	isTarget := func(targetVal string, attrs []html.Attribute) bool {

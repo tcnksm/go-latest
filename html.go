@@ -13,37 +13,33 @@ import (
 )
 
 type HTML struct {
-	URL       string
-	ScrapFunc ScrapFunc
+	URL     string
+	Scraper Scraper
 }
 
-type ScrapFunc func(r io.Reader) ([]string, *Meta, error)
-
-func ScrapNothing() ScrapFunc {
-	return func(r io.Reader) ([]string, *Meta, error) {
-		meta := &Meta{}
-		b, err := ioutil.ReadAll(r)
-		if err != nil {
-			return []string{}, meta, err
-		}
-
-		b = bytes.Replace(b, []byte("\n"), []byte(""), -1)
-		return []string{string(b[:])}, meta, nil
-	}
+type Scraper interface {
+	Exec(r io.Reader) ([]string, *Meta, error)
 }
 
-var defaultScrapFunc ScrapFunc
+type DefaultScrap struct{}
 
-func init() {
-	defaultScrapFunc = ScrapNothing()
-}
-
-func (h *HTML) scrapFunc() ScrapFunc {
-	if h.ScrapFunc == nil {
-		return defaultScrapFunc
+func (s *DefaultScrap) Exec(r io.Reader) ([]string, *Meta, error) {
+	meta := &Meta{}
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return []string{}, meta, err
 	}
 
-	return h.ScrapFunc
+	b = bytes.Replace(b, []byte("\n"), []byte(""), -1)
+	return []string{string(b[:])}, meta, nil
+}
+
+func (h *HTML) scraper() Scraper {
+	if h.Scraper == nil {
+		return &DefaultScrap{}
+	}
+
+	return h.Scraper
 }
 
 func (h *HTML) Validate() error {
@@ -95,8 +91,8 @@ func (h *HTML) Fetch() (*FetchResponse, error) {
 		return fr, fmt.Errorf("unknown status: %d", resp.StatusCode)
 	}
 
-	scrapFunc := h.scrapFunc()
-	verStrs, meta, err := scrapFunc(resp.Body)
+	scraper := h.scraper()
+	verStrs, meta, err := scraper.Exec(resp.Body)
 	if err != nil {
 		return fr, err
 	}
