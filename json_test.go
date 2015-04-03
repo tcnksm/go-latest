@@ -77,11 +77,12 @@ func TestJSONFetch(t *testing.T) {
 			Receiver: tt.receiver,
 		}
 
-		versions, _, err := j.Fetch()
+		fr, err := j.Fetch()
 		if err != nil {
 			t.Fatalf("#%d Fetch() expects error:%q to be nil", i, err.Error())
 		}
 
+		versions := fr.Versions
 		current := versions[0].String()
 		if current != tt.expectCurrent {
 			t.Fatalf("#%d Fetch() expects %s to be %s", i, current, tt.expectCurrent)

@@ -68,10 +68,9 @@ func (j *JSON) Validate() error {
 }
 
 // Fetch fetches Json from server and interpret them as version.Version and return.
-func (j *JSON) Fetch() ([]*version.Version, []string, error) {
+func (j *JSON) Fetch() (*FetchResponse, error) {
 
-	var versions []*version.Version
-	var malformed []string
+	fr := NewFetchResponse()
 
 	// URL is validated before call
 	u, _ := url.Parse(j.URL)
@@ -79,7 +78,7 @@ func (j *JSON) Fetch() ([]*version.Version, []string, error) {
 	// Create a new request
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return versions, malformed, err
+		return fr, err
 	}
 	req.Header.Add("Accept", "application/json")
 
@@ -97,30 +96,30 @@ func (j *JSON) Fetch() ([]*version.Version, []string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return versions, malformed, err
+		return fr, err
 	}
 
 	if resp.StatusCode != 200 {
-		return versions, malformed, fmt.Errorf("unknown status: %d", resp.StatusCode)
+		return fr, fmt.Errorf("unknown status: %d", resp.StatusCode)
 	}
 
 	result := j.receiver()
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&result); err != nil {
-		return versions, malformed, err
+		return fr, err
 	}
 
 	verStr := result.Version()
 	if len(verStr) == 0 {
-		return versions, malformed, fmt.Errorf("version info is not found on %s", j.URL)
+		return fr, fmt.Errorf("version info is not found on %s", j.URL)
 	}
 
 	v, err := version.NewVersion(verStr)
 	if err != nil {
-		malformed = append(malformed, verStr)
-		return versions, malformed, err
+		fr.Malformeds = append(fr.Malformeds, verStr)
+		return fr, err
 	}
 
-	versions = append(versions, v)
-	return versions, malformed, nil
+	fr.Versions = append(fr.Versions, v)
+	return fr, nil
 }
