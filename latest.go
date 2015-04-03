@@ -13,20 +13,9 @@ package latest
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/hashicorp/go-version"
 )
-
-// FixVersionStrFunc is function to fix version string
-// so that it can be interpreted as SemVer by hashicorp/go-version
-type FixVersionStrFunc func(string) string
-
-var defaultFixVersionStrFunc FixVersionStrFunc
-
-func init() {
-	defaultFixVersionStrFunc = FixNothing()
-}
 
 // Source is version information source like GitHub or your server HTML.
 type Source interface {
@@ -35,7 +24,20 @@ type Source interface {
 
 	// Fetch fetches version information from its source
 	// and convert it into version.Version
-	Fetch() ([]*version.Version, []string, error)
+	Fetch() (*FetchResponse, error)
+}
+
+// FetchResponse stores Fetch() results
+type FetchResponse struct {
+	Versions   []*version.Version
+	Malformeds []string
+	Meta       *Meta
+}
+
+// Meta is meta information from source
+type Meta struct {
+	Message string
+	URL     string
 }
 
 // CheckResponse stores check results
@@ -52,7 +54,10 @@ type CheckResponse struct {
 
 	// Malformed store versions or tags which can not be parsed as
 	// Semantic versioning (not compared with target)
-	Malformed []string
+	Malformeds []string
+
+	//
+	Meta *Meta
 }
 
 // CheckLatest fetches last version information from its source
@@ -69,13 +74,14 @@ func Check(target string, s Source) (*CheckResponse, error) {
 		return nil, err
 	}
 
-	versions, malformed, err := s.Fetch()
+	fr, err := s.Fetch()
 	if err != nil {
 		return nil, err
 	}
 
 	// Source must has at leaset one version information
-	if len(versions) == 0 {
+	versions := fr.Versions
+	if len(fr.Versions) == 0 {
 		return nil, fmt.Errorf("no version to compare")
 	}
 	sort.Sort(version.Collection(versions))
@@ -93,23 +99,20 @@ func Check(target string, s Source) (*CheckResponse, error) {
 	}
 
 	return &CheckResponse{
-		Current:   currentV.String(),
-		Latest:    latest,
-		New:       new,
-		Malformed: malformed,
+		Current:    currentV.String(),
+		Latest:     latest,
+		New:        new,
+		Malformeds: fr.Malformeds,
+		Meta:       fr.Meta,
 	}, nil
 }
 
-func FixNothing() FixVersionStrFunc {
-	return func(s string) string {
-		return s
-	}
-}
-
-// DeleteFrontV delete first `v` charactor on version string
-// e.g., `v0.1.1` becomes `0.1.1`
-func DeleteFrontV() FixVersionStrFunc {
-	return func(s string) string {
-		return strings.Replace(s, "v", "", 1)
+func NewFetchResponse() *FetchResponse {
+	var versions []*version.Version
+	var malformeds []string
+	return &FetchResponse{
+		Versions:   versions,
+		Malformeds: malformeds,
+		Meta:       &Meta{},
 	}
 }

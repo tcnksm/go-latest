@@ -2,10 +2,21 @@ package latest
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
 )
+
+// FixVersionStrFunc is function to fix version string
+// so that it can be interpreted as SemVer by hashicorp/go-version
+type FixVersionStrFunc func(string) string
+
+var defaultFixVersionStrFunc FixVersionStrFunc
+
+func init() {
+	defaultFixVersionStrFunc = FixNothing()
+}
 
 // GithubTag is implemented Source interface. It uses GitHub API
 // and fetch tags from repository.
@@ -34,6 +45,20 @@ func (g *GithubTag) fixVersionStrFunc() FixVersionStrFunc {
 	return g.FixVersionStrFunc
 }
 
+func FixNothing() FixVersionStrFunc {
+	return func(s string) string {
+		return s
+	}
+}
+
+// DeleteFrontV delete first `v` charactor on version string
+// e.g., `v0.1.1` becomes `0.1.1`
+func DeleteFrontV() FixVersionStrFunc {
+	return func(s string) string {
+		return strings.Replace(s, "v", "", 1)
+	}
+}
+
 func (g *GithubTag) newClient() *github.Client {
 	return github.NewClient(nil)
 }
@@ -53,20 +78,19 @@ func (g *GithubTag) Validate() error {
 
 // Fetch fetches github tags and interpret them as version.Version and return.
 // To fetch tags, use google/go-github package.
-func (g *GithubTag) Fetch() ([]*version.Version, []string, error) {
+func (g *GithubTag) Fetch() (*FetchResponse, error) {
 
-	var versions []*version.Version
-	var malformedTags []string
+	fr := NewFetchResponse()
 
 	// Create a client
 	client := g.newClient()
 	tags, resp, err := client.Repositories.ListTags(g.Owner, g.Repository, nil)
 	if err != nil {
-		return versions, malformedTags, err
+		return fr, err
 	}
 
 	if resp.StatusCode != 200 {
-		return versions, malformedTags, fmt.Errorf("Unknown status: %d", resp.StatusCode)
+		return fr, fmt.Errorf("Unknown status: %d", resp.StatusCode)
 	}
 
 	// fixF is FixVersionStrFunc transform tag name string into SemVer string
@@ -76,11 +100,11 @@ func (g *GithubTag) Fetch() ([]*version.Version, []string, error) {
 	for _, tag := range tags {
 		v, err := version.NewVersion(fixF(*tag.Name))
 		if err != nil {
-			malformedTags = append(malformedTags, fixF(*tag.Name))
+			fr.Malformeds = append(fr.Malformeds, fixF(*tag.Name))
 			continue
 		}
-		versions = append(versions, v)
+		fr.Versions = append(fr.Versions, v)
 	}
 
-	return versions, malformedTags, nil
+	return fr, nil
 }
