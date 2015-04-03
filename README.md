@@ -2,12 +2,12 @@ go-latest
 ====
 
 [![GitHub release](http://img.shields.io/github/release/tcnksm/go-latest.svg?style=flat-square)][release]
-[![Wercker](http://img.shields.io/wercker/ci/544ee33aea87f6374f001483.svg?style=flat-square)][wercker]
+[![Wercker](http://img.shields.io/wercker/ci/551e58c16b7badb9770001288.svg?style=flat-square)][wercker]
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
 [![Go Documentation](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godocs]
 
 [release]: https://github.com/tcnksm/go-latest/releases
-[wercker]: https://app.wercker.com/project/bykey/89c5a6e50a0daceec971ff5ce210164a
+[wercker]: https://app.wercker.com/project/bykey/1059e8b0cf3bde5fc220477d39a1bf0e
 [license]: https://github.com/tcnksm/go-latest/blob/master/LICENSE
 [godocs]: http://godoc.org/github.com/tcnksm/go-latest
 
