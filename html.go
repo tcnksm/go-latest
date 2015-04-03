@@ -1,14 +1,13 @@
 package latest
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
-
-	"bytes"
 
 	"github.com/hashicorp/go-version"
 )
@@ -56,10 +55,9 @@ func (h *HTML) Validate() error {
 	return nil
 }
 
-func (h *HTML) Fetch() ([]*version.Version, []string, error) {
+func (h *HTML) Fetch() (*FetchResponse, error) {
 
-	var versions []*version.Version
-	var malformed []string
+	fr := NewFetchResponse()
 
 	// URL is validated before call
 	u, _ := url.Parse(h.URL)
@@ -67,7 +65,7 @@ func (h *HTML) Fetch() ([]*version.Version, []string, error) {
 	// Create a new request
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return versions, malformed, err
+		return fr, err
 	}
 	req.Header.Add("Accept", "application/json")
 
@@ -85,26 +83,26 @@ func (h *HTML) Fetch() ([]*version.Version, []string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return versions, malformed, err
+		return fr, err
 	}
 
 	if resp.StatusCode != 200 {
-		return versions, malformed, fmt.Errorf("unknown status: %d", resp.StatusCode)
+		return fr, fmt.Errorf("unknown status: %d", resp.StatusCode)
 	}
 
 	scrapFunc := h.scrapFunc()
 	verStrs := scrapFunc(resp.Body)
 	if len(verStrs) == 0 {
-		return versions, malformed, fmt.Errorf("version info is not found on %s", h.URL)
+		return fr, fmt.Errorf("version info is not found on %s", h.URL)
 	}
 
 	for _, verStr := range verStrs {
 		v, err := version.NewVersion(verStr)
 		if err != nil {
-			malformed = append(malformed, verStr)
+			fr.Malformeds = append(fr.Malformeds, verStr)
 			continue
 		}
-		versions = append(versions, v)
+		fr.Versions = append(fr.Versions, v)
 	}
-	return versions, malformed, nil
+	return fr, nil
 }

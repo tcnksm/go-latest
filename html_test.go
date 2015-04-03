@@ -77,11 +77,12 @@ func TestHTMLFetch(t *testing.T) {
 			ScrapFunc: tt.scrapFunc,
 		}
 
-		versions, _, err := h.Fetch()
+		fr, err := h.Fetch()
 		if err != nil {
 			t.Fatalf("#%d Fetch() expects error:%q to be nil", i, err.Error())
 		}
 
+		versions := fr.Versions
 		if len(versions) == 0 {
 			t.Fatalf("#%d Fetch() expects number of versions found from HTML not to be 0", i)
 		}
