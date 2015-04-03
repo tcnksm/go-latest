@@ -1,4 +1,5 @@
 {
     "name":"go-latest",
-    "version_info":"v0.1.0"
+    "version_info":"v1.0.0",
+    "status": "We are releasing now"
 }

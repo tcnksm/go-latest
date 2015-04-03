@@ -29,20 +29,32 @@ type JSON struct {
 }
 
 type Receiver interface {
-	// Version() returns current version string.
+	// VersionInfo() returns version list.
 	// It must be SemVer format. If response is not SemVer format,
 	// transform it in this function.
-	Version() string
+	VersionInfo() ([]string, error)
+
+	// MetaInfo() returns Meta information
+	MetaInfo() (*Meta, error)
 }
 
 // DefaultResponse assumes response include `version` field and version
 // is SemVer format. e.g., {"version":"1.2.3"}
 type DefaultResponse struct {
-	VersionInfo string `json:"version"`
+	Version string `json:"version"`
+	Message string `json:"message"`
+	URL     string `json:"url"`
 }
 
-func (res *DefaultResponse) Version() string {
-	return res.VersionInfo
+func (res *DefaultResponse) VersionInfo() ([]string, error) {
+	return []string{res.Version}, nil
+}
+
+func (res *DefaultResponse) MetaInfo() (*Meta, error) {
+	return &Meta{
+		Message: res.Message,
+		URL:     res.URL,
+	}, nil
 }
 
 func (j *JSON) receiver() Receiver {
@@ -109,17 +121,27 @@ func (j *JSON) Fetch() (*FetchResponse, error) {
 		return fr, err
 	}
 
-	verStr := result.Version()
-	if len(verStr) == 0 {
-		return fr, fmt.Errorf("version info is not found on %s", j.URL)
-	}
-
-	v, err := version.NewVersion(verStr)
+	verStrs, err := result.VersionInfo()
 	if err != nil {
-		fr.Malformeds = append(fr.Malformeds, verStr)
 		return fr, err
 	}
 
-	fr.Versions = append(fr.Versions, v)
+	if len(verStrs) == 0 {
+		return fr, fmt.Errorf("version info is not found on %s", j.URL)
+	}
+
+	for _, verStr := range verStrs {
+		v, err := version.NewVersion(verStr)
+		if err != nil {
+			fr.Malformeds = append(fr.Malformeds, verStr)
+		}
+		fr.Versions = append(fr.Versions, v)
+	}
+
+	fr.Meta, err = result.MetaInfo()
+	if err != nil {
+		return fr, err
+	}
+
 	return fr, nil
 }
