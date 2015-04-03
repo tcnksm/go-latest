@@ -15,46 +15,11 @@ func TestHTML_implement(t *testing.T) {
 	var _ Source = &HTML{}
 }
 
-// originalScrap is scrapFunc for test-fixtures/original.html
-// It extracts VERSION from `<div class="version">VERSION</div>`
-func originalScrap(r io.Reader) []string {
-
-	// Check function attrs has correct class="version" key&value
-	isTarget := func(targetVal string, attrs []html.Attribute) bool {
-		for _, a := range attrs {
-			if a.Namespace != "" {
-				continue
-			}
-
-			if a.Key == "class" && a.Val == targetVal {
-				return true
-			}
-		}
-		return false
-	}
-
-	var verStrs []string
-	z := html.NewTokenizer(r)
-
-	for {
-		switch z.Next() {
-		case html.ErrorToken:
-			return verStrs
-		case html.StartTagToken:
-			tok := z.Token()
-			if tok.DataAtom == atom.Div && isTarget("version", tok.Attr) {
-				z.Next()
-				newTok := z.Token()
-				verStrs = append(verStrs, newTok.String())
-			}
-		}
-	}
-}
-
 func TestHTMLFetch(t *testing.T) {
 	tests := []struct {
 		testServer    *httptest.Server
 		expectCurrent string
+		expectMessage string
 		scrapFunc     ScrapFunc
 	}{
 		{
@@ -64,6 +29,7 @@ func TestHTMLFetch(t *testing.T) {
 		{
 			testServer:    fakeServer("test-fixtures/original.html"),
 			expectCurrent: "1.2.5",
+			expectMessage: "New version include security update, you should update soon",
 			scrapFunc:     originalScrap,
 		},
 	}
@@ -92,6 +58,60 @@ func TestHTMLFetch(t *testing.T) {
 		if current != tt.expectCurrent {
 			t.Fatalf("#%d Fetch() expects %s to be %s", i, current, tt.expectCurrent)
 		}
+
+		message := fr.Meta.Message
+		if message != tt.expectMessage {
+			t.Fatalf("#%d Fetch() expects %q to be %q", i, message, tt.expectMessage)
+		}
 	}
 
+}
+
+// originalScrap is scrapFunc for test-fixtures/original.html
+// It extracts VERSION from `<div class="version">VERSION</div>`
+func originalScrap(r io.Reader) ([]string, *Meta, error) {
+
+	// Check function attrs has correct class="val" key&value
+	isTarget := func(targetVal string, attrs []html.Attribute) bool {
+		for _, a := range attrs {
+			if a.Namespace != "" {
+				continue
+			}
+
+			if a.Key == "class" && a.Val == targetVal {
+				return true
+			}
+		}
+		return false
+	}
+
+	var verStrs []string
+
+	meta := &Meta{}
+
+	z := html.NewTokenizer(r)
+
+	for {
+		switch z.Next() {
+		case html.ErrorToken:
+			return verStrs, meta, nil
+
+		case html.StartTagToken:
+			tok := z.Token()
+
+			// <div class="version">VERSION</div>
+			if tok.DataAtom == atom.Div && isTarget("version", tok.Attr) {
+				z.Next()
+				newTok := z.Token()
+				verStrs = append(verStrs, newTok.String())
+			}
+
+			// <div class="message">MESSAGE</div>
+			if tok.DataAtom == atom.Div && isTarget("message", tok.Attr) {
+				z.Next()
+				newTok := z.Token()
+				meta.Message = newTok.String()
+			}
+		}
+	}
 }

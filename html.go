@@ -17,13 +17,18 @@ type HTML struct {
 	ScrapFunc ScrapFunc
 }
 
-type ScrapFunc func(r io.Reader) []string
+type ScrapFunc func(r io.Reader) ([]string, *Meta, error)
 
 func ScrapNothing() ScrapFunc {
-	return func(r io.Reader) []string {
-		b, _ := ioutil.ReadAll(r)
+	return func(r io.Reader) ([]string, *Meta, error) {
+		meta := &Meta{}
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return []string{}, meta, err
+		}
+
 		b = bytes.Replace(b, []byte("\n"), []byte(""), -1)
-		return []string{string(b[:])}
+		return []string{string(b[:])}, meta, nil
 	}
 }
 
@@ -91,7 +96,11 @@ func (h *HTML) Fetch() (*FetchResponse, error) {
 	}
 
 	scrapFunc := h.scrapFunc()
-	verStrs := scrapFunc(resp.Body)
+	verStrs, meta, err := scrapFunc(resp.Body)
+	if err != nil {
+		return fr, err
+	}
+
 	if len(verStrs) == 0 {
 		return fr, fmt.Errorf("version info is not found on %s", h.URL)
 	}
@@ -104,5 +113,8 @@ func (h *HTML) Fetch() (*FetchResponse, error) {
 		}
 		fr.Versions = append(fr.Versions, v)
 	}
+
+	fr.Meta = meta
+
 	return fr, nil
 }
