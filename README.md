@@ -41,7 +41,7 @@ githubTag := &latest.GithubTag{
 }
 
 res, _ := latest.Check("0.1.0",githubTag)
-if !res.latest {
+if !res.Latest {
     fmt.Printf("0.1.0 is not latest, you should upgrade to %s", res.Current)
 }
 ```
@@ -63,7 +63,7 @@ html := &latest.HTMLMeta{
 }
 
 res, _ := latest.Check("0.1.0", html)
-if !res.latest {
+if !res.Latest {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```
@@ -92,7 +92,7 @@ json := &latest.JSON{
 }
 
 res, _ := latest.Check("0.1.0", json)
-if !res.latest {
+if !res.Latest {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```

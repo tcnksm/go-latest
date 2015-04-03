@@ -88,14 +88,14 @@ func Check(target string, s Source) (*CheckResponse, error) {
 	currentV := versions[len(versions)-1]
 
 	var latest, new bool
-	// If target >= current, target is `lastest`
+	// If target > current, target is `latest` and `new`
 	if targetV.GreaterThan(currentV) {
-		latest = true
+		new, latest = true, true
+	}
 
-		// If target > current, target is `new`
-		if !targetV.Equal(currentV) {
-			new = true
-		}
+	// If target = current, target is `latest`
+	if targetV.Equal(currentV) {
+		latest = true
 	}
 
 	return &CheckResponse{
