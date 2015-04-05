@@ -18,7 +18,7 @@ func TestJSON_Check(t *testing.T) {
 	}
 
 	target := "1.2.0"
-	res, err := Check(target, j)
+	res, err := Check(j, target)
 	if err != nil {
 		t.Fatalf("expect %q to be nil", err.Error())
 	}
