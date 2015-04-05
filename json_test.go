@@ -61,7 +61,7 @@ func TestJSONFetch(t *testing.T) {
 
 	tests := []struct {
 		testServer    *httptest.Server
-		receiver      Receiver
+		receiver      JSONReceiver
 		expectCurrent string
 		expectMessage string
 		expectURL     string

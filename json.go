@@ -21,14 +21,13 @@ type JSON struct {
 	// URL is URL which return json with version information.
 	URL string
 
-	// Receiver is Receiver interface to use original json response.
-	// Reveiver should be defined json response struct and Version()
-	// to return SemVer format version string.
+	// Receiver is JSONReceiver interface to use your own original json response.
 	// By default, DefaultResponse is used.
-	Receiver Receiver
+	Receiver JSONReceiver
 }
 
-type Receiver interface {
+// JSONReceiver is interface to fetch your own original json response.
+type JSONReceiver interface {
 	// VersionInfo() returns version list.
 	// It must be SemVer format. If response is not SemVer format,
 	// transform it in this function.
@@ -38,28 +37,33 @@ type Receiver interface {
 	MetaInfo() (*Meta, error)
 }
 
-// DefaultResponse assumes response include `version` field and version
-// is SemVer format. e.g., {"version":"1.2.3"}
-type DefaultResponse struct {
+// DefaultJSONResponse assumes response include `version` field and version
+// is SemVer format. For example,
+//   {
+//      "version": "1.2.3",
+//      "message": "This release include security update",
+//      "URL": "http://example.com"
+//   }
+type DefaultJSONResponse struct {
 	Version string `json:"version"`
 	Message string `json:"message"`
 	URL     string `json:"url"`
 }
 
-func (res *DefaultResponse) VersionInfo() ([]string, error) {
+func (res *DefaultJSONResponse) VersionInfo() ([]string, error) {
 	return []string{res.Version}, nil
 }
 
-func (res *DefaultResponse) MetaInfo() (*Meta, error) {
+func (res *DefaultJSONResponse) MetaInfo() (*Meta, error) {
 	return &Meta{
 		Message: res.Message,
 		URL:     res.URL,
 	}, nil
 }
 
-func (j *JSON) receiver() Receiver {
+func (j *JSON) receiver() JSONReceiver {
 	if j.Receiver == nil {
-		return &DefaultResponse{}
+		return &DefaultJSONResponse{}
 	}
 
 	return j.Receiver
