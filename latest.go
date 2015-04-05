@@ -1,11 +1,22 @@
 /*
-For a full guide visit http://github.com/tcnksm/go-latest
+go-latest is pacakge to check a provided version is latest from various sources.
+For a full guide, visit http://github.com/tcnksm/go-latest
 
   package main
 
   import (
       "github.com/tcnksm/go-latest"
   )
+
+  githubTag := &latest.GithubTag{
+      Owner: "tcnksm",
+      Repository: "ghr"
+  }
+
+  res, _ := latest.Check("0.1.0",githubTag)
+  if res.Outdated {
+      fmt.Printf("version 0.1.0 is out of date, you can upgrade to %s", res.Current)
+  }
 
 */
 package latest
@@ -22,7 +33,8 @@ import (
 // execution.
 const EnvGoLatestDisable = "GOLATEST_DISABLE"
 
-// Source is version information source like GitHub or your server HTML.
+// Source is version information source like GitHub or HTML. You can implement
+// your Source by implemeting Validate() and Fetch().
 type Source interface {
 	// Validate validates Source struct e.g., mandatory variables are set
 	Validate() error
@@ -32,7 +44,7 @@ type Source interface {
 	Fetch() (*FetchResponse, error)
 }
 
-// FetchResponse stores Fetch() results
+// FetchResponse is a response fo Fetch() results
 type FetchResponse struct {
 	Versions   []*version.Version
 	Malformeds []string
@@ -40,14 +52,12 @@ type FetchResponse struct {
 }
 
 // Meta is meta information from source.
-//
-// If you want to pass more information please send Pull Request
 type Meta struct {
 	Message string
 	URL     string
 }
 
-// CheckResponse is a response for a Check request
+// CheckResponse is a response for a Check() request
 type CheckResponse struct {
 	// Current is current latest version on source.
 	Current string
