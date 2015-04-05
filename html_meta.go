@@ -9,8 +9,13 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+// MetaTagName is HTML meta tag name
 const MetaTagName = "go-latest"
 
+// HTMLMeta is implemented Source interface.
+// It fetches HTML and extract version information from defined meta tag.
+//
+// See meta tag specification on https://github.com/tcnksm/go-latest/blob/master/doc/html_meta.md
 type HTMLMeta struct {
 	URL  string
 	Name string
@@ -54,7 +59,7 @@ func (mt *metaTagScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			tok := z.Token()
 			if tok.DataAtom == atom.Meta {
-				product, version, message := AttrAnalizer(tok.Attr)
+				product, version, message := attrAnalizer(tok.Attr)
 				// Return first founded version.
 				// Assumes that mata tag exist only one for each product
 				if product == mt.Name {
@@ -65,7 +70,7 @@ func (mt *metaTagScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 	}
 }
 
-func AttrAnalizer(attrs []html.Attribute) (product, version, message string) {
+func attrAnalizer(attrs []html.Attribute) (product, version, message string) {
 
 	for _, a := range attrs {
 
