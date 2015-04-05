@@ -12,7 +12,7 @@ go-latest
 [godocs]: http://godoc.org/github.com/tcnksm/go-latest
 
 
-`go-latest` is a pacakge to check version is latest or not from various sources.
+`go-latest` is a pacakge to check a provided version is latest or not from various sources.
 
 If you're building tool in Golang, you can use this pacakge for encourage user to upgrade latest version of your tool. For source to check, currecntly we can use Tags on Github, [HTML Meta tag](doc/html_meta.md), JSON response and HTML scraping.
 
@@ -41,7 +41,7 @@ githubTag := &latest.GithubTag{
 }
 
 res, _ := latest.Check("0.1.0",githubTag)
-if !res.Latest {
+if res.Outdated {
     fmt.Printf("0.1.0 is not latest, you should upgrade to %s", res.Current)
 }
 ```
@@ -63,7 +63,7 @@ html := &latest.HTMLMeta{
 }
 
 res, _ := latest.Check("0.1.0", html)
-if !res.Latest {
+if res.Outdated {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```
@@ -92,7 +92,7 @@ json := &latest.JSON{
 }
 
 res, _ := latest.Check("0.1.0", json)
-if !res.Latest {
+if res.Outdated {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```
@@ -104,6 +104,13 @@ You can prepare your own json receiver. See more details in document at [https:/
 To compare version, we use [hashicorp/go-version](https://github.com/hashicorp/go-version). `go-version` follows [Semantic Versoning](http://semver.org/). So to use `go-latest` you need to follow SemVer format.
 
 For user who doesn't use SemVer format, `go-latest` has function to transform it into SemVer format.
+
+## Example
+
+Here is tools which is used `go-latest`.
+
+- [tcnksm/ghr](https://github.com/tcnksm/ghr)
+
 
 ## Contribution
 
