@@ -9,7 +9,7 @@ import (
 )
 
 // FixVersionStrFunc is function to fix version string
-// so that it can be interpreted as SemVer by hashicorp/go-version
+// so that it can be interpreted as SemVer by http://godoc.org/github.com/hashicorp/go-version
 type FixVersionStrFunc func(string) string
 
 var defaultFixVersionStrFunc FixVersionStrFunc
@@ -45,6 +45,7 @@ func (g *GithubTag) fixVersionStrFunc() FixVersionStrFunc {
 	return g.FixVersionStrFunc
 }
 
+// FixNothing does nothing. This is a default function of FixVersionStrFunc.
 func FixNothing() FixVersionStrFunc {
 	return func(s string) string {
 		return s
@@ -52,7 +53,7 @@ func FixNothing() FixVersionStrFunc {
 }
 
 // DeleteFrontV delete first `v` charactor on version string
-// e.g., `v0.1.1` becomes `0.1.1`
+// e.g., `v0.1.1` becomes `0.1.1`.
 func DeleteFrontV() FixVersionStrFunc {
 	return func(s string) string {
 		return strings.Replace(s, "v", "", 1)
@@ -76,8 +77,8 @@ func (g *GithubTag) Validate() error {
 	return nil
 }
 
-// Fetch fetches github tags and interpret them as version.Version and return.
-// To fetch tags, use google/go-github package.
+// Fetch fetches github tags on Github.
+// To fetch tags, it uses http://godoc.org/github.com/google/go-github/github.
 func (g *GithubTag) Fetch() (*FetchResponse, error) {
 
 	fr := NewFetchResponse()
