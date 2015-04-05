@@ -12,18 +12,25 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+// HTML is implemented Source interface.
+// It fetch version information fron HTML and Scrap.
 type HTML struct {
-	URL     string
-	Scraper Scraper
+	// URL is HTML page URL which include version information
+	URL string
+
+	// Scraper is HTMLScraper which scrap HTML and extract version information.
+	// By default, it does nothing (call)
+	Scraper HTMLScraper
 }
 
-type Scraper interface {
+// HTMLScraper is inferface to scrap HTML and extract version information.
+type HTMLScraper interface {
 	Exec(r io.Reader) ([]string, *Meta, error)
 }
 
-type DefaultScrap struct{}
+type DefaultHTMLScrap struct{}
 
-func (s *DefaultScrap) Exec(r io.Reader) ([]string, *Meta, error) {
+func (s *DefaultHTMLScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 	meta := &Meta{}
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -34,9 +41,9 @@ func (s *DefaultScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 	return []string{string(b[:])}, meta, nil
 }
 
-func (h *HTML) scraper() Scraper {
+func (h *HTML) scraper() HTMLScraper {
 	if h.Scraper == nil {
-		return &DefaultScrap{}
+		return &DefaultHTMLScrap{}
 	}
 
 	return h.Scraper
@@ -56,6 +63,7 @@ func (h *HTML) Validate() error {
 	return nil
 }
 
+// Fetch fetches HTML page and scrap it by HTMLScraper and extract version infomation
 func (h *HTML) Fetch() (*FetchResponse, error) {
 
 	fr := NewFetchResponse()

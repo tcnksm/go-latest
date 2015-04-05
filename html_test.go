@@ -20,7 +20,7 @@ func TestHTMLFetch(t *testing.T) {
 		testServer    *httptest.Server
 		expectCurrent string
 		expectMessage string
-		scraper       Scraper
+		scraper       HTMLScraper
 	}{
 		{
 			testServer:    fakeServer("test-fixtures/default.html"),
