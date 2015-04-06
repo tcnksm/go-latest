@@ -9,22 +9,25 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-// MetaTagName is HTML meta tag name
+// MetaTagName is common HTML meta tag name which is defined on https://github.com/tcnksm/go-latest/blob/master/doc/html_meta.md
 const MetaTagName = "go-latest"
 
-// HTMLMeta is implemented Source interface.
-// It fetches HTML and extract version information from defined meta tag.
-//
-// See meta tag specification on https://github.com/tcnksm/go-latest/blob/master/doc/html_meta.md
+// HTMLMeta is used to fetch a single HTML page and extract version information from
+// specific meta tag. See meta tag specification that HTMLMeta tries to extract on https://github.com/tcnksm/go-latest/blob/master/doc/html_meta.md
 type HTMLMeta struct {
-	URL  string
+	// URL is HTML page URL which include version information.
+	URL string
+
+	// Name is tool name which you want to check. This name must be
+	// written in HTML meta tag content field. HTMLMeta use this to
+	// extract version information.
 	Name string
 }
 
 func (hm *HTMLMeta) newHTML() *HTML {
 	return &HTML{
-		URL:     hm.URL,
-		Scraper: &metaTagScrap{Name: hm.Name},
+		URL:   hm.URL,
+		Scrap: &metaTagScrap{Name: hm.Name},
 	}
 }
 
