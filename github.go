@@ -9,27 +9,27 @@ import (
 )
 
 // FixVersionStrFunc is function to fix version string
-// so that it can be interpreted as SemVer by http://godoc.org/github.com/hashicorp/go-version
+// so that it can be interpreted as Semantic Versiongin by
+// http://godoc.org/github.com/hashicorp/go-version
 type FixVersionStrFunc func(string) string
 
 var defaultFixVersionStrFunc FixVersionStrFunc
 
 func init() {
-	defaultFixVersionStrFunc = FixNothing()
+	defaultFixVersionStrFunc = fixNothing()
 }
 
-// GithubTag is implemented Source interface. It uses GitHub API
-// and fetch tags from repository.
+// GithubTag is used to fetch version(tag) information from Github.
 type GithubTag struct {
-	// Owner and Repository are GitHub owner name and its repository name
+	// Owner and Repository are GitHub owner name and its repository name.
 	// e.g., If you want to check https://github.com/tcnksm/ghr version
-	// Repository is `ghr`, and Owner is `tcnksm`
+	// Repository is `ghr`, and Owner is `tcnksm`.
 	Owner      string
 	Repository string
 
 	// FixVersionStrFunc is function to fix version string (in this case tag
-	// name string) on GitHub so that it can be interpreted as SemVer
-	// by hashicorp/go-version. By default, it does nothing (calles FixNothing()).
+	// name string) on GitHub so that it can be interpreted as Semantic Versioning
+	// by hashicorp/go-version. By default, it does nothing.
 	FixVersionStrFunc FixVersionStrFunc
 
 	// URL & Token is used for GitHub Enterprise
@@ -45,18 +45,10 @@ func (g *GithubTag) fixVersionStrFunc() FixVersionStrFunc {
 	return g.FixVersionStrFunc
 }
 
-// FixNothing does nothing. This is a default function of FixVersionStrFunc.
-func FixNothing() FixVersionStrFunc {
+// fixNothing does nothing. This is a default function of FixVersionStrFunc.
+func fixNothing() FixVersionStrFunc {
 	return func(s string) string {
 		return s
-	}
-}
-
-// DeleteFrontV delete first `v` charactor on version string
-// e.g., `v0.1.1` becomes `0.1.1`.
-func DeleteFrontV() FixVersionStrFunc {
-	return func(s string) string {
-		return strings.Replace(s, "v", "", 1)
 	}
 }
 
@@ -77,8 +69,6 @@ func (g *GithubTag) Validate() error {
 	return nil
 }
 
-// Fetch fetches github tags on Github.
-// To fetch tags, it uses http://godoc.org/github.com/google/go-github/github.
 func (g *GithubTag) Fetch() (*FetchResponse, error) {
 
 	fr := NewFetchResponse()

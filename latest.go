@@ -1,6 +1,7 @@
 /*
 go-latest is pacakge to check a provided version is latest from various sources.
-For a full guide, visit http://github.com/tcnksm/go-latest
+
+http://github.com/tcnksm/go-latest
 
   package main
 
@@ -33,31 +34,33 @@ import (
 // execution.
 const EnvGoLatestDisable = "GOLATEST_DISABLE"
 
-// Source is version information source like GitHub or HTML. You can implement
-// your Source by implemeting Validate() and Fetch().
+// Source is the interface that every version information source must implement.
 type Source interface {
-	// Validate validates Source struct e.g., mandatory variables are set
+	// Validate is called before Fetch in Check.
+	// Source may need to have various information like URL or product name,
+	// so it is used for check each variables are correctly set.
+	// If it is failed, Fetch() will not executed.
 	Validate() error
 
-	// Fetch fetches version information from its source
-	// and convert it into version.Version
+	// Fetch is called in Check to fetch information from remote sources.
+	// After fetching, it will convert it into common expression (FetchResponse)
 	Fetch() (*FetchResponse, error)
 }
 
-// FetchResponse is a response fo Fetch() results
+// FetchResponse the commom response of Fetch request.
 type FetchResponse struct {
 	Versions   []*version.Version
 	Malformeds []string
 	Meta       *Meta
 }
 
-// Meta is meta information from source.
+// Meta is meta information from Fetch request.
 type Meta struct {
 	Message string
 	URL     string
 }
 
-// CheckResponse is a response for a Check() request
+// CheckResponse is a response for a Check request.
 type CheckResponse struct {
 	// Current is current latest version on source.
 	Current string
@@ -72,7 +75,7 @@ type CheckResponse struct {
 	New bool
 
 	// Malformed store versions or tags which can not be parsed as
-	// Semantic versioning (not compared with target)
+	// Semantic versioning (not compared with target).
 	Malformeds []string
 
 	// Meta is meta information from source.
@@ -80,7 +83,7 @@ type CheckResponse struct {
 }
 
 // Check fetches last version information from its source
-// and compares with target and return result (CheckResponse)
+// and compares with target and return result (CheckResponse).
 func Check(s Source, target string) (*CheckResponse, error) {
 
 	if os.Getenv(EnvGoLatestDisable) != "" {
