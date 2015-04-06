@@ -2,7 +2,6 @@ package latest
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
@@ -71,7 +70,7 @@ func (g *GithubTag) Validate() error {
 
 func (g *GithubTag) Fetch() (*FetchResponse, error) {
 
-	fr := NewFetchResponse()
+	fr := newFetchResponse()
 
 	// Create a client
 	client := g.newClient()

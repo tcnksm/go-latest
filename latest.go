@@ -139,9 +139,9 @@ func Check(s Source, target string) (*CheckResponse, error) {
 	}, nil
 }
 
-// NewFetchResponse is constructor of FetchResponse. This is only for
+// newFetchResponse is constructor of FetchResponse. This is only for
 // implement your own Source
-func NewFetchResponse() *FetchResponse {
+func newFetchResponse() *FetchResponse {
 	var versions []*version.Version
 	var malformeds []string
 	return &FetchResponse{
