@@ -12,25 +12,27 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// HTML is implemented Source interface.
-// It fetch version information fron HTML and Scrap.
+// HTML is used to fetch version information from a single HTML page.
 type HTML struct {
-	// URL is HTML page URL which include version information
+	// URL is HTML page URL which include version information.
 	URL string
 
-	// Scraper is HTMLScraper which scrap HTML and extract version information.
-	// By default, it does nothing (call)
-	Scraper HTMLScraper
+	// Scrap is used to scrap a single HTML page and extract version information.
+	// See more about HTMLScrap interface.
+	// By default, it does nothing, just return HTML contents.
+	Scrap HTMLScrap
 }
 
-// HTMLScraper is inferface to scrap HTML and extract version information.
-type HTMLScraper interface {
+// HTMLScrap is used to scrap a single HTML page and extract version information.
+type HTMLScrap interface {
+	// Exec is called from Fetch after fetching a HTMl page from source.
+	// It must return version information as string list format.
 	Exec(r io.Reader) ([]string, *Meta, error)
 }
 
-type DefaultHTMLScrap struct{}
+type defaultHTMLScrap struct{}
 
-func (s *DefaultHTMLScrap) Exec(r io.Reader) ([]string, *Meta, error) {
+func (s *defaultHTMLScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 	meta := &Meta{}
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -41,12 +43,12 @@ func (s *DefaultHTMLScrap) Exec(r io.Reader) ([]string, *Meta, error) {
 	return []string{string(b[:])}, meta, nil
 }
 
-func (h *HTML) scraper() HTMLScraper {
-	if h.Scraper == nil {
-		return &DefaultHTMLScrap{}
+func (h *HTML) scrap() HTMLScrap {
+	if h.Scrap == nil {
+		return &defaultHTMLScrap{}
 	}
 
-	return h.Scraper
+	return h.Scrap
 }
 
 func (h *HTML) Validate() error {
@@ -63,10 +65,9 @@ func (h *HTML) Validate() error {
 	return nil
 }
 
-// Fetch fetches HTML page and scrap it by HTMLScraper and extract version infomation
 func (h *HTML) Fetch() (*FetchResponse, error) {
 
-	fr := NewFetchResponse()
+	fr := newFetchResponse()
 
 	// URL is validated before call
 	u, _ := url.Parse(h.URL)
@@ -99,8 +100,8 @@ func (h *HTML) Fetch() (*FetchResponse, error) {
 		return fr, fmt.Errorf("unknown status: %d", resp.StatusCode)
 	}
 
-	scraper := h.scraper()
-	verStrs, meta, err := scraper.Exec(resp.Body)
+	scrap := h.scrap()
+	verStrs, meta, err := scrap.Exec(resp.Body)
 	if err != nil {
 		return fr, err
 	}

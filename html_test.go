@@ -20,7 +20,7 @@ func TestHTMLFetch(t *testing.T) {
 		testServer    *httptest.Server
 		expectCurrent string
 		expectMessage string
-		scraper       HTMLScraper
+		scrap         HTMLScrap
 	}{
 		{
 			testServer:    fakeServer("test-fixtures/default.html"),
@@ -30,7 +30,7 @@ func TestHTMLFetch(t *testing.T) {
 			testServer:    fakeServer("test-fixtures/original.html"),
 			expectCurrent: "1.2.5",
 			expectMessage: "New version include security update, you should update soon",
-			scraper:       &DivAttributeScrap{},
+			scrap:         &DivAttributeScrap{},
 		},
 	}
 
@@ -39,8 +39,8 @@ func TestHTMLFetch(t *testing.T) {
 		defer ts.Close()
 
 		h := &HTML{
-			URL:     ts.URL,
-			Scraper: tt.scraper,
+			URL:   ts.URL,
+			Scrap: tt.scrap,
 		}
 
 		fr, err := h.Fetch()
