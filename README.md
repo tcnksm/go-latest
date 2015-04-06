@@ -40,13 +40,13 @@ githubTag := &latest.GithubTag{
     Repository: "reponame",
 }
 
-res, _ := latest.Check(githubTag,"0.1.0")
+res, _ := latest.Check(githubTag, "0.1.0")
 if res.Outdated {
     fmt.Printf("0.1.0 is not latest, you should upgrade to %s", res.Current)
 }
 ```
 
-`go-latest` uses [Semantic Versoning](http://semver.org/) to compare versions. If tagging name strategy on GitHub may is different from it, you need to fix it by defining `FixVersionStrFunc`. 
+`go-latest` uses [Semantic Versoning](http://semver.org/) to compare versions. If tagging name strategy on GitHub is different from it, you need to fix it by defining `FixVersionStrFunc`. 
 
 ### HTML meta tag
 
@@ -97,13 +97,13 @@ json := &latest.JSON{
     URL: "http://example.com/json",
 }
 
-res, _ := latest.Check("0.1.0", json)
+res, _ := latest.Check(json, "0.1.0")
 if res.Outdated {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```
 
-You can use your own json schema by defining `JSONReceiver` interface. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
+You can use your own json schema by defining `JSONReceive` interface. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
 ## Version comparing
 
