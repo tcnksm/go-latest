@@ -14,7 +14,7 @@ go-latest
 
 `go-latest` is a pacakge to check a provided version is latest or not from various sources.
 
-If you're building tool in Golang, you can use this pacakge for encourage user to upgrade latest version of your tool. For source to check, currecntly we can use Tags on Github, [HTML Meta tag](doc/html_meta.md), JSON response and HTML scraping.
+Once you distribute your tool and user started to use it, it's difficult to tell users that new version is released and encourage them to use new one. `go-latest` enables you to do that by just preparing simple source. For sources, currecntly you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
 
 See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
@@ -28,33 +28,45 @@ $ go get -d github.com/tcnksm/go-latest
 
 ## Usage
 
-For sources to check, currecntly we can use Tags on Github, [HTML Meta tag](doc/html_meta.md), JSON response and HTML scraping.
+For sources to check, currecntly you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
 
-### GithubTag
+### Github Tag
 
-If you want to check [https://github.com/tcnksm/ghr](https://github.com/tcnksm/ghr) version `0.1.0` is latest or not on Github.
+To check `0.1.0` is the latest in tags on GitHub.
 
 ```golang
 githubTag := &latest.GithubTag{
-    Owner: "tcnksm",
-    Repository: "ghr"
+    Owner: "username",
+    Repository: "reponame",
 }
 
-res, _ := latest.Check("0.1.0",githubTag)
+res, _ := latest.Check(githubTag,"0.1.0")
 if res.Outdated {
     fmt.Printf("0.1.0 is not latest, you should upgrade to %s", res.Current)
 }
 ```
 
-### HTML Meta tag
+`go-latest` uses [Semantic Versoning](http://semver.org/) to compare versions. If tagging name strategy on GitHub may be different from it, you need to fix it by defining `FixVersionStrFunc`. For example, if you put `v` charactor on beginning of tag name (`v0.1.1`), by default `go-latest` can not interpret it. So you need to use `DeleteFrontV()`,
 
-You can use a simple HTTP+HTML version check. For example, if you have a tool named `reduce-worker` and want to check `0.1.0` is latest or not. First prepare HTML page which included following meta tag,
+```golang
+githubTag := &latest.GithubTag{
+    Owner: "username",
+    Repository: "reponame",
+    FixVersionStrFunc: latest.DeleteFrontV(),
+}
+```
+
+### HTML meta tag
+
+To check version, you can use simple HTTP+HTML meta tag.
+
+For example, if you have a tool named `reduce-worker` and want to check `0.1.0` is latest or not, prepare HTML page which includes following meta tag, 
 
 ```html
 <meta name="go-latest" content="reduce-worker 0.1.1 New version include security update">
 ```
 
-And create following request,
+And make request,
 
 ```golang
 html := &latest.HTMLMeta{
@@ -62,19 +74,21 @@ html := &latest.HTMLMeta{
     Name: "reduce-worker",
 }
 
-res, _ := latest.Check("0.1.0", html)
+res, _ := latest.Check(html, "0.1.0")
 if res.Outdated {
     fmt.Printf("0.1.0 is not latest, %s, upgrade to %s", res.Meta.Message, res.Current)
 }
 ```
 
-To know about HTML Meta tag spec, see [HTML Meta tag](doc/html_meta.md).
+To know about HTML meta tag specification, see [HTML Meta tag](doc/html_meta.md).
 
-And you can prepare your own HTML structure and its scraping fuction. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
+You can prepare your own HTML page definition and its scraping fuction. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
 ### JSON
 
-If you have an API which return following response, you can use it for checking. For example, API returns following response,
+You can also use JSON response.
+
+If you want to check `0.1.0` is latest or not, prepare an API server which returns a following response,
 
 ```json
 {
@@ -84,7 +98,7 @@ If you have an API which return following response, you can use it for checking.
 }
 ```
 
-To check `0.1.1` is latest, just make following request.
+And make request,
 
 ```golang
 json := &latest.JSON{
@@ -97,7 +111,7 @@ if res.Outdated {
 }
 ```
 
-You can prepare your own json receiver. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
+You can use your own json schema by defining `JSONReceiver` interface. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
 ## Version comparing
 
