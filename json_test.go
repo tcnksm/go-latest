@@ -61,7 +61,7 @@ func TestJSONFetch(t *testing.T) {
 
 	tests := []struct {
 		testServer    *httptest.Server
-		receiver      JSONReceiver
+		response      JSONResponse
 		expectCurrent string
 		expectMessage string
 		expectURL     string
@@ -76,7 +76,7 @@ func TestJSONFetch(t *testing.T) {
 			testServer:    fakeServer("test-fixtures/original.json"),
 			expectCurrent: "1.0.0",
 			expectMessage: "We are releasing now",
-			receiver:      &OriginalResponse{},
+			response:      &OriginalResponse{},
 		},
 	}
 
@@ -86,7 +86,7 @@ func TestJSONFetch(t *testing.T) {
 
 		j := &JSON{
 			URL:      ts.URL,
-			Receiver: tt.receiver,
+			Response: tt.response,
 		}
 
 		fr, err := j.Fetch()

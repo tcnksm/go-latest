@@ -15,58 +15,49 @@ var (
 	defaultDialTimeout = 5 * time.Second
 )
 
-// JSON is implemented Source interface. It fetches version infomation
-// from URL.
+// JSON is used to get version information as json format from remote host.
 type JSON struct {
-	// URL is URL which return json with version information.
+	// URL is URL which return json response with version information.
 	URL string
 
-	// Receiver is JSONReceiver interface to use your own original json response.
-	// By default, DefaultResponse is used.
-	Receiver JSONReceiver
+	// Response is used to decode json as Struct and extract version information.
+	// See JSONResponse interface. By Default, it is used defaultJSONResponse.
+	Response JSONResponse
 }
 
-// JSONReceiver is interface to fetch your own original json response.
-type JSONReceiver interface {
-	// VersionInfo() returns version list.
-	// It must be SemVer format. If response is not SemVer format,
-	// transform it in this function.
+// JSONResponse is used to decode json as Struct and extract information.
+type JSONResponse interface {
+	// VersionInfo is called from Fetch to extract version info.
+	// It must return Semantic Version format version string list.
 	VersionInfo() ([]string, error)
 
-	// MetaInfo() returns Meta information
+	// MetaInfo is called from Fetch to extract meta info.
 	MetaInfo() (*Meta, error)
 }
 
-// DefaultJSONResponse assumes response include `version` field and version
-// is SemVer format. For example,
-//   {
-//      "version": "1.2.3",
-//      "message": "This release include security update",
-//      "URL": "http://example.com"
-//   }
-type DefaultJSONResponse struct {
+type defaultJSONResponse struct {
 	Version string `json:"version"`
 	Message string `json:"message"`
 	URL     string `json:"url"`
 }
 
-func (res *DefaultJSONResponse) VersionInfo() ([]string, error) {
+func (res *defaultJSONResponse) VersionInfo() ([]string, error) {
 	return []string{res.Version}, nil
 }
 
-func (res *DefaultJSONResponse) MetaInfo() (*Meta, error) {
+func (res *defaultJSONResponse) MetaInfo() (*Meta, error) {
 	return &Meta{
 		Message: res.Message,
 		URL:     res.URL,
 	}, nil
 }
 
-func (j *JSON) receiver() JSONReceiver {
-	if j.Receiver == nil {
-		return &DefaultJSONResponse{}
+func (j *JSON) response() JSONResponse {
+	if j.Response == nil {
+		return &defaultJSONResponse{}
 	}
 
-	return j.Receiver
+	return j.Response
 }
 
 func (j *JSON) Validate() error {
@@ -83,10 +74,9 @@ func (j *JSON) Validate() error {
 	return nil
 }
 
-// Fetch fetches Json from server and interpret them as version.Version and return.
 func (j *JSON) Fetch() (*FetchResponse, error) {
 
-	fr := NewFetchResponse()
+	fr := newFetchResponse()
 
 	// URL is validated before call
 	u, _ := url.Parse(j.URL)
@@ -119,7 +109,7 @@ func (j *JSON) Fetch() (*FetchResponse, error) {
 		return fr, fmt.Errorf("unknown status: %d", resp.StatusCode)
 	}
 
-	result := j.receiver()
+	result := j.response()
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(&result); err != nil {
 		return fr, err
