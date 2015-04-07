@@ -14,7 +14,7 @@ go-latest
 
 `go-latest` is a package to check a provided version is latest or not from various sources.
 
-Once you distribute your tool by golang and user start to use it, it's difficult to tell users that new version is released and encourage them to use new one. `go-latest` enables you to do that by just preparing simple source. For sources, currecntly you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
+Once you distribute your tool by golang and user start to use it, it's difficult to tell users that new version is released and encourage them to use new one. `go-latest` enables you to do that by just preparing simple source. For sources, currently you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
 
 See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
@@ -28,7 +28,7 @@ $ go get -d github.com/tcnksm/go-latest
 
 ## Usage
 
-For sources to check, currecntly you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
+For sources to check, currently you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
 
 ### Github Tag
 
@@ -46,7 +46,7 @@ if res.Outdated {
 }
 ```
 
-`go-latest` uses [Semantic Versoning](http://semver.org/) to compare versions. If tagging name strategy on GitHub is different from it, you need to fix it by defining `FixVersionStrFunc`. 
+`go-latest` uses [Semantic Versioning](http://semver.org/) to compare versions. If tagging name strategy on GitHub is different from it, you need to fix it by defining `FixVersionStrFunc`. 
 
 ### HTML meta tag
 
@@ -74,7 +74,7 @@ if res.Outdated {
 
 To know about HTML meta tag specification, see [HTML Meta tag](doc/html_meta.md).
 
-You can prepare your own HTML page and its scraping fuction. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
+You can prepare your own HTML page and its scraping function. See more details in document at [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest).
 
 ### JSON
 
@@ -107,7 +107,7 @@ You can use your own json schema by defining `JSONReceive` interface. See more d
 
 ## Version comparing
 
-To compare version, we use [hashicorp/go-version](https://github.com/hashicorp/go-version). `go-version` follows [Semantic Versoning](http://semver.org/). So to use `go-latest` you need to follow SemVer format.
+To compare version, we use [hashicorp/go-version](https://github.com/hashicorp/go-version). `go-version` follows [Semantic Versioning](http://semver.org/). So to use `go-latest` you need to follow SemVer format.
 
 For user who doesn't use SemVer format, `go-latest` has function to transform it into SemVer format.
 
