@@ -12,7 +12,7 @@ go-latest
 [godocs]: http://godoc.org/github.com/tcnksm/go-latest
 
 
-`go-latest` is a pacakge to check a provided version is latest or not from various sources.
+`go-latest` is a package to check a provided version is latest or not from various sources.
 
 Once you distribute your tool by golang and user start to use it, it's difficult to tell users that new version is released and encourage them to use new one. `go-latest` enables you to do that by just preparing simple source. For sources, currecntly you can use tags on Github, [HTML meta tag](doc/html_meta.md) (HTML scraping) and JSON response. 
 
