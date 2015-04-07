@@ -2,6 +2,7 @@ package latest
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/go-version"
@@ -48,6 +49,14 @@ func (g *GithubTag) fixVersionStrFunc() FixVersionStrFunc {
 func fixNothing() FixVersionStrFunc {
 	return func(s string) string {
 		return s
+	}
+}
+
+// DeleteFrontV delete first `v` charactor on version string.
+// For example version name `v0.1.1` becomes `0.1.1`
+func DeleteFrontV() FixVersionStrFunc {
+	return func(s string) string {
+		return strings.Replace(s, "v", "", 1)
 	}
 }
 
