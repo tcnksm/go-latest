@@ -2,7 +2,7 @@ go-latest
 ====
 
 [![GitHub release](http://img.shields.io/github/release/tcnksm/go-latest.svg?style=flat-square)][release]
-[![Wercker](http://img.shields.io/wercker/ci/551e58c16b7badb9770001288.svg?style=flat-square)][wercker]
+[![Wercker](http://img.shields.io/wercker/ci/551e58c16b7badb977000128.svg?style=flat-square)][wercker]
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)][license]
 [![Go Documentation](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godocs]
 
