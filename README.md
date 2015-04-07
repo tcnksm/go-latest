@@ -46,7 +46,17 @@ if res.Outdated {
 }
 ```
 
-`go-latest` uses [Semantic Versioning](http://semver.org/) to compare versions. If tagging name strategy on GitHub is different from it, you need to fix it by defining `FixVersionStrFunc`. 
+`go-latest` uses [Semantic Versioning](http://semver.org/) to compare versions. If tagging name strategy on GitHub is different from it, you need to fix it with `FixVersionStrFunc`. For example, if you add `v` charactor in the begining of version string like `v0.1.0`, you need to transform it to `0.1.0`, you can use `DeleteFrontV()` function like below,  
+
+```golang
+githubTag := &latest.GithubTag{
+    Owner:             "username",
+    Repository:        "reponame",
+    FixVersionStrFunc: latest.DeleteFrontV(),
+}
+```
+
+You can define your own `FixVersionStrFunc`. See more on [https://godoc.org/github.com/tcnksm/go-latest](https://godoc.org/github.com/tcnksm/go-latest)
 
 ### HTML meta tag
 
