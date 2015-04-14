@@ -19,7 +19,8 @@ type CLI struct {
 func (c *CLI) Run(args []string) int {
 	var githubTag latest.GithubTag
 
-	flags := flag.NewFlagSet(Name, flag.ContinueOnError)
+	flags := flag.NewFlagSet(Name, flag.ExitOnError)
+	flags.Usage = func() { fmt.Fprintf(c.errStream, helpText) }
 	flags.SetOutput(c.errStream)
 
 	flags.StringVar(&githubTag.Repository,
@@ -39,7 +40,7 @@ func (c *CLI) Run(args []string) int {
 		false, "Print verbose(debug) output")
 
 	if err := flags.Parse(args[1:]); err != nil {
-		fmt.Fprint(c.errStream, "Failed to parse flag")
+		fmt.Fprint(c.errStream, "Failed to parse flag\n")
 		return 1
 	}
 
@@ -114,7 +115,7 @@ func (c *CLI) Run(args []string) int {
 	return exitCode
 }
 
-const helpText = `Usage: latest [options] VERSION
+const helpText = `Usage: latest [options] TAG
 
     latest command check TAG(VERSION) is latest. If is not latest,
     it returns non-zero value. It try to compare version by Semantic
