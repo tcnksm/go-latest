@@ -1,10 +1,10 @@
 # latest
 
-`latest` is a command to check github respository you are in is latest or not.
+`latest` is a command to check a provided version is latest or not in GitHub. 
 
 ## Usage
 
-To check cloned repository is latest or not, run `latest` in its directory root. If it is not latest version, it returns non-zero exit code.
+To check cloned repository is latest or not, just run with owner name and repository name which you want to check. If it is not latest version, it returns non-zero exit code.
 
 ```go
 $ latest -owner=tcnksm -repo=go-latest 2.4.1
