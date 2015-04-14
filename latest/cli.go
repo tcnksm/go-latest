@@ -46,7 +46,7 @@ func (c *CLI) Run(args []string) int {
 
 	// Show version and quit
 	if *flgVersion {
-		fmt.Fprintf(c.errStream, "%s Version v%s\n", Name, Version)
+		fmt.Fprintf(c.errStream, "%s Version v%s build %s\n", Name, Version, GitCommit)
 		return 0
 	}
 
