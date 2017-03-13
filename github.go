@@ -1,6 +1,7 @@
 package latest
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
@@ -122,7 +123,7 @@ func (g *GithubTag) Fetch() (*FetchResponse, error) {
 
 	// Create a client
 	client := g.newClient()
-	tags, resp, err := client.Repositories.ListTags(g.Owner, g.Repository, nil)
+	tags, resp, err := client.Repositories.ListTags(context.Background(), g.Owner, g.Repository, nil)
 	if err != nil {
 		return fr, err
 	}
